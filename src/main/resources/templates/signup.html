@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form th:action="@{/signup}" th:object="${member}" method="post">
+        <input th:field="*{memberId}" placeholder="아이디" />
+        <div th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}"></div>
+
+        <input type="password" th:field="*{password}" placeholder="비밀번호" />
+        <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+
+        <input th:field="*{nickname}" placeholder="닉네임"/>
+        <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}"></div>
+
+        <input type="number" th:field="*{age}" placeholder="나이"/>
+        <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}"></div>
+
+        <input th:field="*{email}" placeholder="이메일"/>
+        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+        <button type="submit">가입</button>
+    </form>
+</body>
+</html>
