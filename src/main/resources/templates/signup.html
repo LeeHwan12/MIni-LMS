@@ -3,24 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-    <form th:action="@{/signup}" th:object="${member}" method="post">
-        <input th:field="*{memberId}" placeholder="아이디" />
-        <div th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}"></div>
+    <th:block th:replace="fragments/nav :: siteNav('홈')"></th:block>
+    <form th:action="@{/signup}" th:object="${member}" method="post" class="signup-form">
+        <table class="form-table">
+            <tr>
+                <th>아이디</th>
+                <td>
+                    <input th:field="*{memberId}" placeholder="아이디" />
+                    <div th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}"></div>
+                </td>
+            </tr>
 
-        <input type="password" th:field="*{password}" placeholder="비밀번호" />
-        <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+            <tr>
+                <th>비밀번호</th>
+                <td>
+                    <input type="password" th:field="*{password}" placeholder="비밀번호" />
+                    <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </td>
+            </tr>
 
-        <input th:field="*{nickname}" placeholder="닉네임"/>
-        <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}"></div>
+            <tr>
+                <th>닉네임</th>
+                <td>
+                    <input th:field="*{nickname}" placeholder="닉네임" />
+                    <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}"></div>
+                </td>
+            </tr>
 
-        <input type="number" th:field="*{age}" placeholder="나이"/>
-        <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}"></div>
+            <tr>
+                <th>출생연도</th>
+                <td>
+                    <select th:field="*{birthYear}">
+                        <option th:each="y : ${#numbers.sequence(#temporals.year(#temporals.createNow()) - 100,
+                                         #temporals.year(#temporals.createNow()))}"
+                                th:value="${y}" th:text="${y}">
+                        </option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('birthYear')}" th:errors="*{birthYear}"></div>
+                </td>
+            </tr>
 
-        <input th:field="*{email}" placeholder="이메일"/>
-        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-        <button type="submit">가입</button>
+            <tr>
+                <th>이메일</th>
+                <td>
+                    <div class="email-group">
+                        <input type="text" th:field="*{emailId}" placeholder="아이디" />
+                        <span>@</span>
+                        <select th:field="*{emailDomain}">
+                            <option value="">-- 선택 --</option>
+                            <option value="gmail.com">gmail.com</option>
+                            <option value="naver.com">naver.com</option>
+                            <option value="daum.net">daum.net</option>
+                            <option value="kakao.com">kakao.com</option>
+                            <option value="yahoo.com">yahoo.com</option>
+                        </select>
+                    </div>
+                    <div th:if="${#fields.hasErrors('emailId')}" th:errors="*{emailId}"></div>
+                    <div th:if="${#fields.hasErrors('emailDomain')}" th:errors="*{emailDomain}"></div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="form-actions">
+            <button type="submit">가입</button>
+        </div>
     </form>
+    <th:block th:replace="fragments/footer :: siteFooter"></th:block>
 </body>
 </html>

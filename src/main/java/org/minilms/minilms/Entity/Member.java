@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -41,8 +42,6 @@ public class Member {
     @Column(name = "email", nullable = false, length = 320)
     private String email;
 
-    @Column(name = "age")
-    private Integer age;
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
@@ -55,6 +54,17 @@ public class Member {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "birth_year")
+    private Integer birthYear;  // DB 컬럼과 매핑
+
+    @Transient
+    public Integer getAge() {
+        if (birthYear != null) {
+            int currentYear = LocalDate.now().getYear();
+            return currentYear - birthYear + 1; // 한국식 나이
+        }
+        return null;
+    }
     /* ====== 도메인 행위(Setter 대신 의미 있는 변경 메서드) ====== */
 
     public void changePassword(String newPasswordHash) {

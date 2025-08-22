@@ -4,6 +4,7 @@ CREATE DATABASE IF NOT EXISTS MiniLMS
 
 -- 2) 그 DB로 전환
 USE MiniLMS;
+drop table member;
 
 -- 3) 테이블 생성
 CREATE TABLE IF NOT EXISTS member (
@@ -12,7 +13,7 @@ CREATE TABLE IF NOT EXISTS member (
   password_hash VARCHAR(100) NOT NULL,
   nickname      VARCHAR(30)  NOT NULL UNIQUE,
   email         VARCHAR(320) NOT NULL UNIQUE,
-  age INT,
+  birth_year  INT,              -- 출생연도 저장
   enabled TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -42,7 +42,6 @@ public class MemberService {
                     .passwordHash(encodedPassword)   // ✅ 해시 저장
                     .nickname(nickname)
                     .email(email)
-                    .age(requestDTO.getAge())
                     .enabled(true)
                     .build();
 

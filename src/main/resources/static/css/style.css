@@ -1,0 +1,218 @@
+/* -----------------------------
+   Reset & 기본 세팅
+----------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+    background-color: #F9F9F9;
+    color: #1F2C40;
+    line-height: 1.6;
+}
+
+/* -----------------------------
+   링크 & 버튼
+----------------------------- */
+a {
+    color: #1F2C40;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #FF6B35; /* 포인트 오렌지 */
+}
+
+button {
+    background-color: #FF6B35;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #e85c2e;
+}
+
+/* -----------------------------
+   네비게이션
+----------------------------- */
+nav {
+    background-color: #1F2C40;
+    padding: 12px 20px;
+    display: flex;
+    gap: 20px;
+}
+
+nav a,p {
+    color: #fff;
+    font-weight: 500;
+}
+
+nav a:hover {
+    color: #FF6B35;
+}
+
+/* -----------------------------
+   메인 컨텐츠 영역
+----------------------------- */
+main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* -----------------------------
+   푸터
+----------------------------- */
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #1F2C40;
+    color: #fff;
+    margin-top: 40px;
+}
+form {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+form input[type="text"],
+form input[type="password"] {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+form input:focus {
+    border-color: #1F2C40;
+    box-shadow: 0 0 4px rgba(31, 44, 64, 0.2);
+    outline: none;
+}
+form select {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+form select:focus {
+    border-color: #1F2C40;
+    box-shadow: 0 0 4px rgba(31, 44, 64, 0.2);
+    outline: none;
+}
+form button {
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* 회원가입 테이블 구조 */
+.signup-form {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.form-table th {
+    text-align: left;
+    width: 120px;
+    padding: 12px;
+    vertical-align: middle;
+    font-weight: 600;
+    color: #1F2C40;
+}
+
+.form-table td {
+    padding: 12px;
+}
+
+.form-table input,
+.form-table select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.form-table input:focus,
+.form-table select:focus {
+    border-color: #1F2C40;
+    box-shadow: 0 0 4px rgba(31,44,64,0.2);
+    outline: none;
+}
+
+.field-error {
+    font-size: 13px;
+    color: #FF3B30;
+    margin-top: 4px;
+}
+
+.email-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    background-color: #FF6B35;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.form-actions button:hover {
+    background-color: #e85c2e;
+}
+
+/* -----------------------------
+   유틸리티 클래스
+----------------------------- */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.p-2 { padding: 0.5rem; }
+.p-4 { padding: 1rem; }

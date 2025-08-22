@@ -1,11 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-    <a href="signup">회원가입</a>
-    <a href="login">로그인</a>
+<!-- 조각 치환 -->
+<th:block th:replace="fragments/nav :: siteNav('홈')"></th:block>
+
+<main>
+    <h1>홈</h1>
+</main>
+
+<th:block th:replace="fragments/footer :: siteFooter"></th:block>
 </body>
 </html>
