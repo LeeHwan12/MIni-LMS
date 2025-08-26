@@ -16,4 +16,5 @@ public class MemberResponseDTO {
     private boolean enabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String avatar_url;
 }

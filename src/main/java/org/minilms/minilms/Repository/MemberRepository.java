@@ -4,6 +4,8 @@ import org.minilms.minilms.Entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
 import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member,Long> {
@@ -15,6 +17,7 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
     boolean existsByMemberId(String memberId);
     boolean existsByEmail(String email);
 
-    // 페이징 조회 (기본 findAll(Pageable)가 이미 있으니 사실 불필요)
-    Page<Member> findAll(Pageable pageable);
+
+    @Query("select m.id from Member m where m.memberId = :memberId")
+    Optional<Long> findPkByMemberId(String loginId);
 }

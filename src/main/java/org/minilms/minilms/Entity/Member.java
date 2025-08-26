@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -56,6 +57,10 @@ public class Member {
 
     @Column(name = "birth_year")
     private Integer birthYear;  // DB 컬럼과 매핑
+
+    @Column(name = "avatar_url")
+    private String avatar_url;
+
 
     @Transient
     public Integer getAge() {
