@@ -1,10 +1,7 @@
 package org.minilms.minilms.Service;
 
 import lombok.RequiredArgsConstructor;
-import org.minilms.minilms.Repository.EnrollmentRepository;
-import org.minilms.minilms.Repository.MemberRepository;
-import org.minilms.minilms.Repository.NotificationRepository;
-import org.minilms.minilms.Repository.ProgressRepository;
+import org.minilms.minilms.Repository.*;
 import org.minilms.minilms.domain.NotificationDTO;
 import org.minilms.minilms.domain.ProfileSummaryDTO;
 import org.springframework.stereotype.Service;
@@ -19,20 +16,17 @@ public class MyPageService {
     private final NotificationRepository notificationRepo;
     private final EnrollmentRepository enrollmentRepo;
     private final ProgressRepository progressRepo;
+    private final MyPageRepository myPageRepository;
 
     @Transactional(readOnly = true)
-    public ProfileSummaryDTO summary(Long memberPk) {
-        var m = memberRepo.findById(memberPk).orElseThrow();
-        int coursesCount = enrollmentRepo.countByMember_Id(memberPk);
-        double avg = progressRepo.avgByMember(memberPk);
-        return ProfileSummaryDTO.builder()
-                .memberId(m.getMemberId())
-                .nickname(m.getNickname())
-                .email(m.getEmail())
-                .avatarUrl(m.getAvatar_url())
-                .coursesCount(coursesCount)
-                .avgProgress(Math.round(avg * 10.0) / 10.0)
-                .build();
+    public ProfileSummaryDTO summary(Long memberId) {
+        var v = myPageRepository.summaryNative(memberId);
+        if (v == null) {
+            return new ProfileSummaryDTO(memberId, null, 0L, 0.0, null);
+        }
+        return new ProfileSummaryDTO(
+                v.getMemberId(), v.getNickname(), v.getCoursesCount(), v.getAvgProgress(), v.getAvatarUrl()
+        );
     }
 
     @Transactional(readOnly = true)

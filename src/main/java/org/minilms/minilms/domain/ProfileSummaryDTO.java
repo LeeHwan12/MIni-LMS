@@ -4,12 +4,10 @@ import lombok.*;
 
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class ProfileSummaryDTO {
-    private String memberId;
+    private Long memberId;
     private String nickname;
-    private String email;
-    private String avatarUrl;
-    private int coursesCount;
-    private double avgProgress;
-    private String role;
+    private Long coursesCount;   // count(...) 는 Long
+    private Double avgProgress;  // avg(...) 는 Double (0.0과 호환)
+    private String avatarUrl;    // Member.avatar_url
 
 }
