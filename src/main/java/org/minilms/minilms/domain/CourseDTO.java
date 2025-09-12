@@ -13,4 +13,6 @@ public class CourseDTO {
     private String category;
     private String status;   // OPEN / CLOSED
     private LocalDateTime createdAt;
+    private String thumbnailUrl;
+    private String createdBy;
 }

@@ -8,7 +8,6 @@
 <body>
 <th:block th:replace="fragments/nav :: siteNav('홈')"></th:block>
 <div class="mypage-container">
-
     <!-- 프로필 카드 -->
     <div class="profile-card">
         <img th:src="${summary.avatarUrl != null ? summary.avatarUrl : '/images/default-avatar.png'}"
@@ -35,7 +34,7 @@
 
     <!-- 버튼 -->
     <div class="actions">
-        <a th:href="@{/courses}" class="btn">강의 목록 보기</a>
+        <a th:href="@{courses/me/enrollments}" class="btn">강의 목록 보기</a>
         <a th:href="@{/profile/edit}" class="btn">프로필 수정</a>
     </div>
 

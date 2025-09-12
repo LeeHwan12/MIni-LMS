@@ -1,10 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <title>강의 리스트</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 네가 제공한 공통 CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <!-- 페이지 전용 보강 스타일 (공통 색/톤 유지) -->
+    <style>
+        /* 상단 네비 (선택) */
+        nav .brand { font-weight: 800; letter-spacing: .3px; }
+
+        /* 리스트 페이지 전용 */
+        .filter-bar {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr .5fr .3fr;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 16px;
+        }
+        /* 공통 CSS에서 form{max-width:400px; margin:auto;} 이므로 리스트 폼은 별도 클래스 부여 */
+        .filter-form {
+            max-width: 100% !important;
+            margin: 0 0 16px 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            display: block !important;
+        }
+        .filter-form .field label {
+            display: block;
+            font-size: 14px;
+            color: #6A737D;
+            margin-bottom: 6px;
+        }
+        .filter-form input[type="search"],
+        .filter-form select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fff;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        .filter-form input[type="search"]:focus,
+        .filter-form select:focus {
+            border-color: #1F2C40;
+            box-shadow: 0 0 4px rgba(31,44,64,.2);
+            outline: none;
+        }
+        .filter-actions { text-align: right; }
+
+        /* 그리드 & 카드 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 240px;
+        }
+        .card-img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            background: #F0F2F5;
+        }
+        .card-body { padding: 14px 16px; flex: 1; }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1F2C40;
+            margin-bottom: 6px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .meta { font-size: 13px; color: #6A737D; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .badges { display: flex; gap: 6px; margin-bottom: 8px; }
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #EEF1F5;
+            color: #1F2C40;
+        }
+        .badge.status-open { background: #DFF5E4; color: #177245; }   /* open = 초록 */
+        .badge.status-closed { background: #E6E8EA; color: #495057; } /* closed = 회색 */
+
+        .desc {
+            font-size: 14px;
+            color: #4B5563;
+            margin-bottom: 10px;
+            max-height: 3.1em;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .date {
+            font-size: 12px;
+            color: #8C96A1;
+        }
+        .card-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #EEF1F5;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            background: #fff;
+        }
+
+        /* 페이징 */
+        .pager {
+            display: flex; justify-content: center; gap: 6px; margin-top: 22px; flex-wrap: wrap;
+        }
+        .pager a, .pager span {
+            display: inline-block;
+            min-width: 36px; height: 36px; line-height: 36px;
+            text-align: center; border-radius: 8px; padding: 0 10px;
+            border: 1px solid #E1E6EB; background: #fff; color: #1F2C40;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+            font-size: 14px;
+        }
+        .pager a:hover { color: #FF6B35; border-color: #FF6B35; }
+        .pager .active {
+            background: #1F2C40; color: #fff; border-color: #1F2C40;
+        }
+        .pager .disabled { opacity: .4; pointer-events: none; }
+
+        /* 반응형 */
+        @media (max-width: 720px) {
+            .filter-bar { grid-template-columns: 1fr; }
+            .filter-actions { text-align: left; }
+        }
+    </style>
 </head>
 <body>
+
+<!-- (선택) 사이트 네비 -->
+<th:block th:replace="fragments/nav :: siteNav('홈')"></th:block>
+
+<main>
+    <h2 class="mt-2" style="margin-bottom:12px;">강의 리스트</h2>
+
+    <!-- 검색/필터 -->
+    <form class="filter-form" method="get" th:action="@{/courses}">
+        <div class="filter-bar">
+            <div class="field">
+                <label>키워드</label>
+                <label>
+                    <input type="search" name="kw" placeholder="제목 검색" th:value="${kw}">
+                </label>
+            </div>
+            <div class="field">
+                <label>카테고리</label>
+                <label>
+                    <select name="cat" th:value="${cat}">
+                        <option value="">전체</option>
+                        <option>BACKEND</option>
+                        <option>FRONTEND</option>
+                        <option>DATA</option>
+                        <option>ETC</option>
+                    </select>
+                </label>
+            </div>
+            <div class="field">
+                <label>페이지 크기</label>
+                <label>
+                    <select name="size" th:value="${courses.size}">
+                        <option>12</option>
+                        <option>24</option>
+                        <option>48</option>
+                    </select>
+                </label>
+            </div>
+            <div class="field filter-actions">
+                <button type="submit">적용</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- 상단 요약 -->
+    <div class="text-right" style="font-size:13px; color:#6A737D; margin-bottom:10px;">
+        총 <strong th:text="${#numbers.formatInteger(courses.totalElements,3,'COMMA')}">0</strong>건 ·
+        <span th:text="${courses.number+1}">1</span>/<span th:text="${courses.totalPages}">1</span> 페이지
+    </div>
+
+    <!-- 데이터 없음 -->
+    <div class="text-center p-4" style="background:#fff;border:1px solid #E1E6EB;border-radius:12px;"
+         th:if="${courses.totalElements == 0}">
+        조건에 맞는 강의가 없습니다. 검색어/카테고리를 조정해 보세요.
+    </div>
+
+    <!-- 카드 그리드 -->
+    <div class="grid" th:if="${courses.totalElements > 0}">
+        <div class="card" th:each="c : ${courses.content}">
+            <img class="card-img" th:if="${c.thumbnailUrl != null}" th:src="${c.thumbnailUrl}" alt="">
+            <div class="card-body">
+                <div class="card-title" th:text="${c.title}">강의 제목</div>
+                <div class="meta" th:text="'강사: ' + ${c.instructor}">강사</div>
+                <div class="badges">
+                    <span class="badge" th:text="${c.category}">BACKEND</span>
+                    <span class="badge"
+                          th:classappend="${c.status}=='open' ? ' status-open' : ' status-closed'"
+                          th:text="${c.status}">open</span>
+                </div>
+                <div class="desc" th:text="${c.description}">설명</div>
+                <div class="date" th:text="${#temporals.format(c.createdAt, 'yyyy-MM-dd')}">2025-09-12</div>
+            </div>
+            <div class="card-footer">
+                <a th:href="@{|/courses/${c.courseId}|}">
+                    <button type="button">자세히</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 페이징 -->
+    <div class="pager" th:if="${courses.totalPages > 1}">
+        <!-- 이전 -->
+        <a th:classappend="${courses.first} ? ' disabled'"
+           th:href="@{/courses(page=${courses.number-1}, size=${courses.size}, kw=${kw}, cat=${cat})}">&laquo;</a>
+
+        <!-- 페이지 번호 (현재-2 ~ 현재+2) -->
+        <span th:each="i : ${#numbers.sequence(
+                (courses.number-2 < 0 ? 0 : courses.number-2),
+                (courses.number+2 >= courses.totalPages ? courses.totalPages-1 : courses.number+2))}"
+              th:classappend="${i == courses.number} ? ' active'">
+        <a th:if="${i != courses.number}"
+           th:text="${i+1}"
+           th:href="@{/courses(page=${i}, size=${courses.size}, kw=${kw}, cat=${cat})}">1</a>
+        <span th:if="${i == courses.number}" th:text="${i+1}">1</span>
+      </span>
+
+        <!-- 다음 -->
+        <a th:classappend="${courses.last} ? ' disabled'"
+           th:href="@{/courses(page=${courses.number+1}, size=${courses.size}, kw=${kw}, cat=${cat})}">&raquo;</a>
+    </div>
+</main>
+
+<th:block th:replace="fragments/footer :: siteFooter"></th:block>
 
 </body>
 </html>

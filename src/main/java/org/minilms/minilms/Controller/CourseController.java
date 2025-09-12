@@ -2,18 +2,27 @@ package org.minilms.minilms.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.minilms.minilms.Service.CourseService;
+import org.minilms.minilms.Service.EnrollmentService;
 import org.minilms.minilms.domain.CourseDTO;
+import org.minilms.minilms.domain.EnrollmentDTO;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Scanner;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/courses")
 public class CourseController {
     private final CourseService courseService;
+    private final EnrollmentService enrollmentService;
     /** 검색 & 목록 */
+    @GetMapping
     public String search(@RequestParam(required = false) String kw,
                          @RequestParam(required = false) String cat,
                          @RequestParam(defaultValue = "0") int page,
@@ -61,5 +70,32 @@ public class CourseController {
     public String updateStatus(@PathVariable Long courseId, @RequestParam String status){
         courseService.changeStatus(courseId,status);
         return "redirect:/courses/" + courseId;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{courseId}/enroll")
+    public String enroll(@PathVariable Long courseId, RedirectAttributes ra){
+        enrollmentService.enroll(courseId);
+        ra.addFlashAttribute("msg", "수강 신청이 완료되었습니다.");
+        return "redirect:/courses/" + courseId;
+    }
+
+    /** 수강 취소 */
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{courseId}/unenroll")
+    public String unenroll(@PathVariable Long courseId, RedirectAttributes ra){
+        enrollmentService.cancel(courseId);
+        ra.addFlashAttribute("msg", "수강 신청이 취소되었습니다.");
+        return "redirect:/courses/" + courseId;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me/enrollments")
+    public String myEnrollments(@RequestParam(defaultValue="0") int page,
+                                @RequestParam(defaultValue="12") int size,
+                                Model model) {
+        Page<EnrollmentDTO> list = enrollmentService.listMyEnrollments(PageRequest.of(page, size));
+        model.addAttribute("enrollments", list);
+        return "enrollments/my";
     }
 }
