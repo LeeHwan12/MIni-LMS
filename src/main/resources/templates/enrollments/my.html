@@ -1,10 +1,134 @@
+<!-- templates/enrollments/my.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <title>내 수강 목록</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link th:href="@{/css/style.css}" rel="stylesheet" />
+
+    <style>
+        .container{max-width:1000px;margin:24px auto;padding:0 16px}
+        .page-title{font-size:22px;font-weight:800;color:#1F2C40;margin:8px 0 16px}
+        .toolbar{display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;color:#6A737D;font-size:14px}
+        .alert{padding:12px 14px;border-radius:8px;margin:12px 0}
+        .alert-info{background:#F1F5FF;color:#1F2C40}
+        .table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid #E1E6EB;border-radius:12px;overflow:hidden}
+        .table th,.table td{padding:12px 14px;text-align:left;border-bottom:1px solid #EEF1F5}
+        .table th{font-size:12px;letter-spacing:.02em;color:#6A737D;background:#F8FAFC}
+        .table tr:last-child td{border-bottom:none}
+        .title-cell a{color:#1F2C40;text-decoration:none;font-weight:700}
+        .title-cell a:hover{color:#FF6B35}
+        .badge{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;background:#EEF1F5;color:#1F2C40}
+        .badge-ok{background:#DFF5E4;color:#177245}
+        .badge-cancel{background:#FFE4E2;color:#9B1C1C}
+        .muted{color:#6A737D;font-size:12px}
+        .pagination{display:flex;gap:6px;align-items:center;justify-content:center;margin:18px 0 8px}
+        .page-btn{display:inline-block;padding:8px 12px;border:1px solid #D7DEE6;border-radius:8px;background:#fff;color:#1F2C40;text-decoration:none}
+        .page-btn[aria-disabled="true"]{pointer-events:none;opacity:.45}
+        .page-info{font-size:12px;color:#6A737D;text-align:center;margin-bottom:24px}
+        .empty{padding:24px;border:1px dashed #D7DEE6;border-radius:12px;color:#6A737D;background:#FAFBFC;text-align:center}
+        .admin-chip{font-size:11px;color:#6A737D}
+    </style>
 </head>
 <body>
+<th:block th:replace="fragments/nav :: siteNav('홈')"></th:block>
+<main class="container">
 
+    <h1 class="page-title">내 수강 목록</h1>
+
+    <!-- 플래시 메시지 영역(필요 시 사용) -->
+
+    <div class="toolbar" th:if="${enrollments}">
+        <div>
+            총 <strong th:text="${enrollments.totalElements}">0</strong>건
+            <span class="muted" th:if="${enrollments.totalPages > 0}">
+        (페이지 <span th:text="${enrollments.number + 1}">1</span> / <span th:text="${enrollments.totalPages}">1</span>)
+      </span>
+        </div>
+        <div class="muted">표시 개수: <span th:text="${enrollments.size}">12</span></div>
+    </div>
+
+    <!-- 비어있는 경우 -->
+    <div class="empty" th:if="${enrollments == null or enrollments.totalElements == 0}">
+        아직 수강 신청 내역이 없습니다.
+    </div>
+
+    <!-- 목록 테이블 -->
+    <table class="table" th:if="${enrollments != null and enrollments.totalElements > 0}">
+        <thead>
+        <tr>
+            <th style="width:36%">강의</th>
+            <th style="width:16%">강사</th>
+            <th style="width:14%">카테고리</th>
+            <th style="width:12%">상태</th>
+            <th style="width:22%">신청일시</th>
+
+            <!-- 관리자만 회원 정보 컬럼 노출 -->
+            <th sec:authorize="hasRole('ADMIN')" style="width:18%">회원</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="e : ${enrollments.content}">
+            <td class="title-cell">
+                <a th:href="@{|/courses/${e.courseId}|}" th:text="${e.title}">강의 제목</a>
+                <div class="muted" th:text="${'강좌 ID: ' + e.courseId}">강좌 ID</div>
+            </td>
+            <td th:text="${e.instructor}">홍길동</td>
+            <td th:text="${e.category}">BACKEND</td>
+            <td>
+        <span class="badge"
+              th:classappend="${e.status == 'ENROLLED'} ? ' badge-ok' : ' badge-cancel'"
+              th:text="${e.status}">ENROLLED</span>
+            </td>
+            <td th:text="${e.enrolledAt != null ? #temporals.format(e.enrolledAt, 'yyyy-MM-dd HH:mm') : '-'}">2025-09-12 10:00</td>
+
+            <!-- 관리자 전용 회원 정보 -->
+            <td sec:authorize="hasRole('ADMIN')">
+                <div th:text="${e.memberUsername != null ? e.memberUsername : '(비공개)'}">member_id</div>
+                <div class="admin-chip" th:text="${e.memberId != null ? 'ID: ' + e.memberId : ''}">ID: 1</div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- 페이지 네비게이션 -->
+    <div class="pagination" th:if="${enrollments != null and enrollments.totalPages > 0}">
+        <!-- 첫 페이지 -->
+        <a class="page-btn" th:href="@{|/courses/me/enrollments?page=0&size=${enrollments.size}|}"
+           th:attr="aria-disabled=${enrollments.first}">« 처음</a>
+
+        <!-- 이전 페이지 -->
+        <a class="page-btn"
+           th:href="@{|/courses/me/enrollments?page=${enrollments.number - 1}&size=${enrollments.size}|}"
+           th:attr="aria-disabled=${!enrollments.hasPrevious()}">‹ 이전</a>
+
+        <!-- 숫자 페이지 (전체 표시: 총 페이지 수가 매우 큰 경우 간단 버전) -->
+        <th:block th:each="p : ${#numbers.sequence(1, enrollments.totalPages)}">
+            <a class="page-btn"
+               th:classappend="${p == enrollments.number + 1} ? ' current' : ''"
+               th:text="${p}"
+               th:href="@{|/courses/me/enrollments?page=${p - 1}&size=${enrollments.size}|}">1</a>
+        </th:block>
+
+        <!-- 다음 페이지 -->
+        <a class="page-btn"
+           th:href="@{|/courses/me/enrollments?page=${enrollments.number + 1}&size=${enrollments.size}|}"
+           th:attr="aria-disabled=${!enrollments.hasNext()}">다음 ›</a>
+
+        <!-- 마지막 페이지 -->
+        <a class="page-btn"
+           th:href="@{|/courses/me/enrollments?page=${enrollments.totalPages - 1}&size=${enrollments.size}|}"
+           th:attr="aria-disabled=${enrollments.last}">끝 »</a>
+    </div>
+
+    <div class="page-info" th:if="${enrollments != null and enrollments.totalPages > 0}">
+        페이지 <strong th:text="${enrollments.number + 1}">1</strong> / <span th:text="${enrollments.totalPages}">1</span>
+    </div>
+
+</main>
+<th:block th:replace="fragments/footer :: siteFooter"></th:block>
 </body>
 </html>

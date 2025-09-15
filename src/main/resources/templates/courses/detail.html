@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ko">
 <head>
     <meta charset="UTF-8" />
     <title th:text="${course.title} + ' - 강의 상세'">강의 상세</title>
@@ -32,8 +34,6 @@
     </style>
 </head>
 <body>
-
-<!-- 상단 네비 프래그먼트(있다면) -->
 <th:block th:replace="fragments/nav :: siteNav('홈')"></th:block>
 
 <main>
@@ -54,15 +54,11 @@
         </div>
 
         <!-- 우측 액션 -->
-        <div class="actions">
-            <a th:href="@{/courses}" class="btn-outline" style="text-decoration:none;display:inline-block;line-height:1.6;padding:8px 16px;border-radius:6px;">목록으로</a>
-            <div class="actions"
-                 sec:authorize="${#authentication?.name == course.createdBy} or hasRole('ADMIN')">
-                <a th:href="@{|/courses/${course.courseId}/edit|}" class="btn-secondary"
-                   style="text-decoration:none;display:inline-block;line-height:1.6;padding:8px 16px;border-radius:6px;">
-                    수정
-                </a>
-            </div>
+        <div class="actions"
+             th:if="${(#authentication?.name == course.createdBy)
+              or #authorization.expression('hasRole(''ADMIN'')')}">
+            <a th:href="@{|/courses/${course.courseId}/edit|}" class="btn-secondary"
+               style="text-decoration:none;display:inline-block;line-height:1.6;padding:8px 16px;border-radius:6px;">수정</a>
         </div>
     </div>
 
@@ -87,18 +83,14 @@
 
     <!-- 상태 토글 액션 -->
     <div class="actions"
-         sec:authorize="${#authentication?.name == course.createdBy} or hasRole('ADMIN')">
+         th:if="${(#authentication?.name == course.createdBy)
+              or #authorization.expression('hasRole(''ADMIN'')')}">
         <form method="post" th:action="@{|/courses/${course.courseId}/status|}">
-            <!-- CSRF 사용 중이면 주석 해제
-            <div th:if="${_csrf != null}">
-              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            </div>
-            -->
             <input type="hidden" name="status"
-                   th:value="${#strings.equalsIgnoreCase(course.status,'open') ? 'closed' : 'open'}">
+                   th:value="${#strings.equalsIgnoreCase(course.status,'OPEN') ? 'closed' : 'open'}">
             <button type="submit"
-                    th:text="${#strings.equalsIgnoreCase(course.status,'open') ? '마감하기' : '오픈하기'}"
-                    th:classappend="${#strings.equalsIgnoreCase(course.status,'open') ? ' btn-danger' : ''}">
+                    th:text="${#strings.equalsIgnoreCase(course.status,'OPEN') ? '마감하기' : '오픈하기'}"
+                    th:classappend="${#strings.equalsIgnoreCase(course.status,'OPEN') ? ' btn-danger' : ''}">
                 마감하기
             </button>
         </form>
@@ -106,20 +98,14 @@
 
     <div class="actions" style="justify-content:flex-start; gap:8px;">
         <!-- 강좌가 OPEN일 때만 신청/취소 버튼 노출 -->
-        <th:block th:if="${#strings.equalsIgnoreCase(course.status,'open')}">
-            <!-- 미신청자: 신청 -->
-            <form th:if="${!enrolled}" method="post" th:action="@{|/courses/${course.courseId}/enroll|}">
-                <!-- CSRF 필요 시 주석 해제
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                -->
+        <th:block th:if="${courseOpen}">
+            <form th:if="${enrolled != null and not enrolled}"
+                  method="post" th:action="@{|/courses/${course.courseId}/enroll|}">
                 <button type="submit">수강 신청</button>
             </form>
 
-            <!-- 신청자: 취소 -->
-            <form th:if="${enrolled}" method="post" th:action="@{|/courses/${course.courseId}/unenroll|}">
-                <!-- CSRF 필요 시 주석 해제
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                -->
+            <form th:if="${enrolled != null and enrolled}"
+                  method="post" th:action="@{|/courses/${course.courseId}/unenroll|}">
                 <button type="submit" class="btn-outline">신청 취소</button>
             </form>
         </th:block>

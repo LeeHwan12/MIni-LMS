@@ -24,6 +24,10 @@ public class CourseService {
                 .orElseThrow(() -> new NotFoundException("강좌 없음"));
         return toDto(c);
     }
+    public Course getById(Long courseId) {
+        return courseRepo.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 강좌를 찾을 수 없습니다. id=" + courseId));
+    }
 
     @Transactional(readOnly = true)
     public Page<CourseDTO> search(String keyword, String category, int page, int size) {
@@ -84,6 +88,7 @@ public class CourseService {
                 .orElseThrow(() -> new NotFoundException("강좌 없음"));
         c.setStatus(safeParseStatus(status)); // "open"/"closed" 등
     }
+
 
     private CourseDTO toDto(Course c) {
         CourseDTO dto = new CourseDTO();

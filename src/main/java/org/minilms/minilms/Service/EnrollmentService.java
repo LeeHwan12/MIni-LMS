@@ -1,4 +1,3 @@
-// src/main/java/org/minilms/minilms/Service/EnrollmentService.java
 package org.minilms.minilms.Service;
 
 
@@ -28,32 +27,24 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepo;
     private final MemberRepository memberRepo;
 
-    private String me() {
-        Authentication a = SecurityContextHolder.getContext().getAuthentication();
-        if (a == null || !a.isAuthenticated() || "anonymousUser".equals(a.getName())) {
-            throw new AccessDeniedException("로그인이 필요합니다.");
-        }
-        return a.getName();
-    }
-
-    /** 수강 신청(재신청 가능: CANCELED → ENROLLED) */
     @Transactional
-    public void enroll(Long courseId) {
-        Long me = currentMemberId();
+    public void enroll(Long courseId, String memberId /* == username */) {
+        Long myId = resolveMemberPk(memberId);
+
         Course course = courseRepo.findById(courseId)
                 .orElseThrow(() -> new NotFoundException("강좌 없음"));
-
-        if (course.getStatus() != courseStatus.OPEN) {
+        if (course.getStatus() != courseStatus.OPEN) { // enum 이름은 PascalCase 권장
             throw new IllegalStateException("마감된 강좌입니다.");
         }
 
-        var existing = enrollmentRepo.findByCourse_CourseIdAndMember_Id(courseId, me).orElse(null);
+        Enrollment existing = enrollmentRepo
+                .findByCourse_CourseIdAndMember_Id(courseId, myId)
+                .orElse(null);
+
         if (existing == null) {
             Enrollment e = new Enrollment();
             e.setCourse(course);
-
-            e.setMember(memberRepo.getReferenceById(me));  // getReference 사용 권장
-            e.getMember().setId(me);
+            e.setMember(memberRepo.getReferenceById(myId));
             e.setStatus(EnrollmentStatus.ENROLLED);
             enrollmentRepo.save(e);
         } else {
@@ -61,65 +52,46 @@ public class EnrollmentService {
             existing.setCanceledAt(null);
         }
     }
-    /** 수강 취소 */
+
     @Transactional
-    public void cancel(Long courseId) {
-        Long me = currentMemberId();
-        Enrollment e = enrollmentRepo.findByCourse_CourseIdAndMember_Id(courseId, me)
+    public void cancel(Long courseId, String memberId) {
+        Long myId = resolveMemberPk(memberId);
+        Enrollment e = enrollmentRepo
+                .findByCourse_CourseIdAndMember_Id(courseId, myId)
                 .orElseThrow(() -> new NotFoundException("신청 내역 없음"));
         e.setStatus(EnrollmentStatus.CANCELED);
         e.setCanceledAt(java.time.LocalDateTime.now());
     }
 
-    /** 현재 로그인 사용자의 신청 여부 */
     @Transactional(readOnly = true)
-    public boolean isEnrolled(Long courseId) {
-        Long me = currentMemberId();
-        return enrollmentRepo.findByCourse_CourseIdAndMember_Id(courseId, me)
+    public boolean isEnrolled(Long courseId, String memberId) {
+        Long myId = resolveMemberPk(memberId);
+        return enrollmentRepo.findByCourse_CourseIdAndMember_Id(courseId, myId)
                 .map(x -> x.getStatus() == EnrollmentStatus.ENROLLED)
                 .orElse(false);
     }
 
-    /** 강좌별 신청자 수 */
     @Transactional(readOnly = true)
-    public long count(Long courseId) {
-        return enrollmentRepo.countByCourse_CourseIdAndStatus(courseId, EnrollmentStatus.ENROLLED);
-    }
-
-    private Long currentMemberId() {
-        Authentication a = SecurityContextHolder.getContext().getAuthentication();
-        if (a == null || !a.isAuthenticated() || "anonymousUser".equals(a.getName())) {
-            throw new AccessDeniedException("로그인이 필요합니다.");
-        }
-        Object principal = a.getPrincipal();
-
-        // 3) 그 외: Authentication.name 사용
-        return memberRepo.findIdByUsername(a.getName())
-                .orElseThrow(() -> new IllegalStateException("회원 정보가 없습니다."));
-    }
-
-    @Transactional(readOnly = true)
-    public Page<EnrollmentDTO> listMyEnrollments(Pageable pageable) {
-        Long me = currentMemberId();
-
-        // 상태 컬럼을 쓰는 경우(ENROLLED만 노출)
-        // Page<Enrollment> page = enrollmentRepo.findByMember_IdAndStatus(me, EnrollmentStatus.ENROLLED, pageable);
-
-        // 상태 컬럼이 없거나, 취소건도 함께 보이려면 아래 라인 사용
-        Page<Enrollment> page = enrollmentRepo.findByMember_Id(me, pageable);
-
+    public Page<EnrollmentDTO> listMyEnrollments(String memberId, Pageable pageable) {
+        System.out.println("memberId = " + memberId + ", pageable = " + pageable);
+        Long myId = resolveMemberPk(memberId);
+        var page = enrollmentRepo.findByMember_Id(myId, pageable);
         return page.map(e -> EnrollmentDTO.builder()
                 .enrollmentId(e.getId())
                 .courseId(e.getCourse().getCourseId())
                 .title(e.getCourse().getTitle())
                 .instructor(e.getCourse().getInstructor())
                 .category(e.getCourse().getCategory())
-                .status(
-                        // 상태 컬럼 없는 경우를 대비한 기본값
-                        e.getStatus() != null ? e.getStatus().name() : "ENROLLED"
-                )
+                .status(e.getStatus() != null ? e.getStatus().name() : "ENROLLED")
                 .enrolledAt(e.getEnrolledAt())
-                .build()
-        );
+                .build());
+    }
+
+    private Long resolveMemberPk(String memberId /* == username */) {
+        if (memberId == null || memberId.isBlank()) {
+            throw new AccessDeniedException("로그인이 필요합니다.");
+        }
+        return memberRepo.findPkByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("회원 정보가 없습니다."));
     }
 }
